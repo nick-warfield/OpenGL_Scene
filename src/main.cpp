@@ -1,17 +1,17 @@
-#include <iostream>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-const char *vertexShaderSource = "#version 330 core\n layout (location = 0) in vec3 aPos; void main() { gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0); }\0";
-const char *l_fragmentShaderSource = "#version 330 core\n out vec4 FragColor; void main() { FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f); }\0";
-const char *r_fragmentShaderSource = "#version 330 core\n out vec4 FragColor; void main() { FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f); }\0";
+#include "Shader.hpp"
+
+#include <iostream>
+
+
+const char *vertexShaderSource = "vertex_shader.vs";
+const char *l_fragmentShaderSource = "fragment_shader.fs";
 
 
 void processInput(GLFWwindow*);
 void framebuffer_size_callback(GLFWwindow*, int, int);
-uint create_shader(const uint, const char*);
-uint create_shader_program(uint, uint);
 
 int main(void) {
 	glfwInit();
@@ -35,26 +35,7 @@ int main(void) {
 		return -1;
 	}
 
-	// create, compile, and link shaders
-	uint vertexShader = create_shader(
-			GL_VERTEX_SHADER,
-			vertexShaderSource);
-	uint l_fragmentShader = create_shader(
-			GL_FRAGMENT_SHADER,
-			l_fragmentShaderSource);
-	uint r_fragmentShader = create_shader(
-			GL_FRAGMENT_SHADER,
-			r_fragmentShaderSource);
-	uint l_shaderProgram = create_shader_program(
-			vertexShader,
-			l_fragmentShader);
-	uint r_shaderProgram = create_shader_program(
-			vertexShader,
-			r_fragmentShader);
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(l_fragmentShader);
-	glDeleteShader(r_fragmentShader);
+	Shader shader = Shader("vertex_shader.vs", "fragment_shader.fs");
 
 	float l_verts[] = {
 		-0.5f, -0.5f, 0.0f,
@@ -109,11 +90,11 @@ int main(void) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(l_shaderProgram);
+		shader.use();
 		glBindVertexArray(l_VAO);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
-		glUseProgram(r_shaderProgram);
+		shader.use();
 		glBindVertexArray(r_VAO);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
@@ -140,36 +121,4 @@ void framebuffer_size_callback(
 		int height
 	) {
 	glViewport(0, 0, width, height);
-}
-
-uint create_shader(const uint shader_type, const char* source) {
-	int success;
-	char infoLog[512];
-
-	uint shader = glCreateShader(shader_type);
-	glShaderSource(shader, 1, &source, NULL);
-	glCompileShader(shader);
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::cout << "ERROR: vertex shader compilation failed\n" << infoLog << std::endl;
-	}
-	return shader;
-}
-
-uint create_shader_program(uint vertex_shader, uint fragment_shader) {
-	int success;
-	char infoLog[512];
-
-	uint shader_program;
-	shader_program = glCreateProgram();
-	glAttachShader(shader_program, vertex_shader);
-	glAttachShader(shader_program, fragment_shader);
-	glLinkProgram(shader_program);
-	glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shader_program, 512, NULL, infoLog);
-		std::cout << "ERROR: shader program linking failed\n" << infoLog << std::endl;
-	}
-	return shader_program;
 }
