@@ -5,13 +5,39 @@
 
 #include <iostream>
 
-
-const char *vertexShaderSource = "vertex_shader.vs";
-const char *l_fragmentShaderSource = "fragment_shader.fs";
-
-
 void processInput(GLFWwindow*);
 void framebuffer_size_callback(GLFWwindow*, int, int);
+
+class Triangle {
+public:
+	Shader shader;
+	uint VBO, VAO, EBO;
+	uint indices[3] = { 0, 1, 2 };
+	float vertices[];
+
+	Triangle(float verts[], uint size, Shader shader_program) :
+	shader(shader_program) {
+		glGenBuffers(1, &VBO);
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &EBO);
+
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+		glBufferData(GL_ARRAY_BUFFER, size, verts, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+	}
+
+	void draw(void) {
+		shader.use();
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+	}
+};
 
 int main(void) {
 	glfwInit();
@@ -47,36 +73,9 @@ int main(void) {
 		 1.0f, -0.5f, 0.0f,
 		 0.0f, -0.5f, 0.0f,
 	};
-	uint indices[] = {
-		0, 1, 2,
-	};
 
-	uint l_VBO, l_VAO, r_VBO, r_VAO, EBO;
-	glGenBuffers(1, &l_VBO);
-	glGenBuffers(1, &r_VBO);
-	glGenVertexArrays(1, &l_VAO);
-	glGenVertexArrays(1, &r_VAO);
-	glGenBuffers(1, &EBO);
-
-	glBindVertexArray(l_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, l_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(l_verts), l_verts, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	glBindVertexArray(r_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, r_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(r_verts), r_verts, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	Triangle l_triangle = Triangle(l_verts, sizeof(l_verts), shader);
+	Triangle r_triangle = Triangle(r_verts, sizeof(r_verts), shader);
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -90,13 +89,8 @@ int main(void) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		shader.use();
-		glBindVertexArray(l_VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-
-		shader.use();
-		glBindVertexArray(r_VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		l_triangle.draw();
+		r_triangle.draw();
 
 		glBindVertexArray(0);
 
