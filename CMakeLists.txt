@@ -33,7 +33,7 @@ message(STATUS "Found GLFW3 in ${glfw3_DIR}")
 #message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
 
 # STB_IMAGE
-#add_library(STB_IMAGE "${CMAKE_SOURCE_DIR}/src/stb_image.cpp")
+add_library(STB_IMAGE "${CMAKE_SOURCE_DIR}/src/stb_image.cpp")
 
 # GLAD
 add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")

@@ -1,47 +1,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "stb_image.h"
 #include "Shader.hpp"
+#include "Rectangle.hpp"
 
 #include <iostream>
 #include <cmath>
 
 void processInput(GLFWwindow*);
 void framebuffer_size_callback(GLFWwindow*, int, int);
-
-class Triangle {
-public:
-	Shader shader;
-	uint VBO, VAO, EBO;
-	uint indices[3] = { 0, 1, 2 };
-	float vertices[];
-
-	Triangle(float verts[], uint size, Shader shader_program) :
-	shader(shader_program) {
-		glGenBuffers(1, &VBO);
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &EBO);
-
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-		glBufferData(GL_ARRAY_BUFFER, size, verts, GL_STATIC_DRAW);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-	}
-
-	void draw(void) {
-		shader.use();
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-	}
-};
 
 int main(void) {
 	glfwInit();
@@ -65,22 +33,17 @@ int main(void) {
 		return -1;
 	}
 
-	Shader l_shader = Shader("vertex_shader.vs", "fragment_shader.fs");
-	Shader r_shader = Shader("vertex_shader.vs", "fragment_shader.fs");
+	Shader shader = Shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
 
-	float l_verts[] = {
-		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		-1.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-		 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
-	};
-	float r_verts[] = {
-		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		 1.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-		 0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+	float verts[] = {
+		// positions			// colors			// texture coords
+		 0.5f,  0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f,		// top right
+		 0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f,		// bottom right
+		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f,		// bottom left
+		-0.5f,  0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f, 1.0f,		// top left
 	};
 
-	Triangle l_triangle = Triangle(l_verts, sizeof(l_verts), l_shader);
-	Triangle r_triangle = Triangle(r_verts, sizeof(r_verts), r_shader);
+	Rectangle rect = Rectangle(verts, sizeof(verts), shader, "resources/container.jpg");
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -95,10 +58,8 @@ int main(void) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
-		l_triangle.shader.set_float("ourColor", greenValue);
-		l_triangle.draw();
-		r_triangle.shader.set_float("ourColor", 1 - greenValue);
-		r_triangle.draw();
+		rect.shader.set_float("ourColor", greenValue);
+		rect.draw();
 
 		glBindVertexArray(0);
 
