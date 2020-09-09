@@ -4,6 +4,7 @@
 #include "Shader.hpp"
 
 #include <iostream>
+#include <cmath>
 
 void processInput(GLFWwindow*);
 void framebuffer_size_callback(GLFWwindow*, int, int);
@@ -28,8 +29,11 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, size, verts, GL_STATIC_DRAW);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
 	}
 
 	void draw(void) {
@@ -61,21 +65,22 @@ int main(void) {
 		return -1;
 	}
 
-	Shader shader = Shader("vertex_shader.vs", "fragment_shader.fs");
+	Shader l_shader = Shader("vertex_shader.vs", "fragment_shader.fs");
+	Shader r_shader = Shader("vertex_shader.vs", "fragment_shader.fs");
 
 	float l_verts[] = {
-		-0.5f, -0.5f, 0.0f,
-		-1.0f,  0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+		-1.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+		 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 	};
 	float r_verts[] = {
-		 0.5f,  0.5f, 0.0f,
-		 1.0f, -0.5f, 0.0f,
-		 0.0f, -0.5f, 0.0f,
+		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+		 1.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+		 0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 	};
 
-	Triangle l_triangle = Triangle(l_verts, sizeof(l_verts), shader);
-	Triangle r_triangle = Triangle(r_verts, sizeof(r_verts), shader);
+	Triangle l_triangle = Triangle(l_verts, sizeof(l_verts), l_shader);
+	Triangle r_triangle = Triangle(r_verts, sizeof(r_verts), r_shader);
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -89,7 +94,10 @@ int main(void) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
+		l_triangle.shader.set_float("ourColor", greenValue);
 		l_triangle.draw();
+		r_triangle.shader.set_float("ourColor", 1 - greenValue);
 		r_triangle.draw();
 
 		glBindVertexArray(0);
