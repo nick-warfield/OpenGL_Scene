@@ -72,6 +72,7 @@ public:
 		shader.set_int("texture1", 0);
 		shader.set_int("texture2", 1);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 };
