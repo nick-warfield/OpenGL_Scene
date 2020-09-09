@@ -21,8 +21,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 find_package(OpenGL REQUIRED)
 
 # GLM
-#find_package(GLM REQUIRED)
-#message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
+find_package(glm REQUIRED)
+message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
 
 # GLFW
 find_package(glfw3 REQUIRED)
@@ -39,6 +39,6 @@ add_library(STB_IMAGE "${CMAKE_SOURCE_DIR}/src/stb_image.cpp")
 add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")
 
 # Put all libraries into a variable
-set(LIBS glfw GL GLAD X11 pthread Xrandr Xi dl)
+set(LIBS glfw GL X11 pthread Xrandr Xi dl)
 include_directories("${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(${PROJECT_NAME} ${LIBS})

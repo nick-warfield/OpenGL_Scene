@@ -1,10 +1,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "stb_image.h"
 #include "Shader.hpp"
 #include "Rectangle.hpp"
 
+#include <glm/trigonometric.hpp>
 #include <iostream>
 #include <cmath>
 
@@ -33,7 +39,7 @@ int main(void) {
 		return -1;
 	}
 
-	Shader shader = Shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
+	Shader shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
 
 	float verts[] = {
 		// positions			// colors			// texture coords
@@ -43,7 +49,7 @@ int main(void) {
 		-0.5f,  0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f, 1.0f,		// top left
 	};
 
-	Rectangle rect = Rectangle(verts, sizeof(verts), shader, "resources/container.jpg");
+	Rectangle rect(verts, sizeof(verts), shader, "resources/container.jpg");
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -59,6 +65,24 @@ int main(void) {
 
 		float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
 		rect.shader.set_float("ourColor", greenValue);
+
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+
+		unsigned int transformLoc = glGetUniformLocation(rect.shader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+		rect.draw();
+
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(-0.75f, 0.65f, 0.0f));
+		trans = glm::rotate(trans, glm::radians(167.0f), glm::vec3(0.0, 0.0, 1.0));
+		greenValue += 0.5f;
+		trans = glm::scale(trans, glm::vec3(greenValue, greenValue, greenValue));
+
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 		rect.draw();
 
 		glBindVertexArray(0);
