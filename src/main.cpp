@@ -5,8 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "stb_image.h"
 #include "Shader.hpp"
+#include "Texture.hpp"
 #include "Rectangle.hpp"
 #include "Camera.hpp"
 
@@ -17,6 +17,7 @@ Camera cam(glm::vec3(0.0, 0.0, 5.0));
 
 void processInput(GLFWwindow*);
 void framebuffer_size_callback(GLFWwindow*, int, int);
+Shape make_cube(void);
 
 int main(void) {
 	glfwInit();
@@ -40,7 +41,73 @@ int main(void) {
 		return -1;
 	}
 
-	float verts[] = {
+	Shape rect = make_cube();
+
+	// wireframe mode
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	glEnable(GL_DEPTH_TEST);
+
+	// main loop
+	while (!glfwWindowShouldClose(window)) {
+		// input
+		processInput(window);
+
+		// render
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+		int viewLoc = glGetUniformLocation(rect.shader, "view");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(cam.look()));
+		int projectionLoc = glGetUniformLocation(rect.shader, "projection");
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		//float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
+		//rect.shader.set_float("ourColor", greenValue);
+
+		draw_shape(rect);
+
+		glBindVertexArray(0);
+
+		// swap buffers
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	glfwTerminate();
+	return 0;
+}
+
+void processInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		cam.move(CameraMovement::FORWARD, 0.01f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		cam.move(CameraMovement::BACKWARD, 0.01f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		cam.move(CameraMovement::LEFT, 0.01f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		cam.move(CameraMovement::RIGHT, 0.01f);
+	}
+}
+
+void framebuffer_size_callback(
+		GLFWwindow* window,
+		int width,
+		int height
+	) {
+	glViewport(0, 0, width, height);
+}
+
+Shape make_cube(void) {
+	std::vector<float> verts = {
 		// positions			// colors			// texture coords
 		-0.5f, -0.5f, -0.5f,	1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
@@ -85,68 +152,26 @@ int main(void) {
 		-0.5f,  0.5f, -0.5f,	1.0f, 0.0f, 1.0f,	0.0f, 1.0f
 	};
 
+	std::vector<int> indices = {
+		0, 1, 2, 3, 4, 5,
+		6, 7, 8, 9, 10, 11,
+		12, 13, 14, 15, 16, 17,
+		18, 19, 20, 21, 22, 23,
+		24, 25, 26, 27, 28, 29,
+		30, 31, 32, 33, 34, 35
+	};
+
+	std::vector<Attribute> attributes;
+	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
+	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
+	attributes.push_back(make_attribute(2, GL_FLOAT, false, sizeof(float)));
+
+	std::vector<uint> textures;
+	textures.push_back(make_texture("resources/container.jpg"));
+	textures.push_back(make_texture("resources/awesomeface.png"));
+
 	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
-	Rectangle rect(verts, sizeof(verts), shader, "resources/container.jpg");
 
-	// wireframe mode
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	glEnable(GL_DEPTH_TEST);
-
-	// main loop
-	while (!glfwWindowShouldClose(window)) {
-		// input
-		processInput(window);
-
-		// render
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-		int viewLoc = glGetUniformLocation(rect.shader, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(cam.look()));
-		int projectionLoc = glGetUniformLocation(rect.shader, "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		//float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
-		//rect.shader.set_float("ourColor", greenValue);
-
-		rect.draw();
-
-		glBindVertexArray(0);
-
-		// swap buffers
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-
-	glfwTerminate();
-	return 0;
+	return make_shape(verts, indices, attributes, textures, shader);
 }
 
-void processInput(GLFWwindow* window) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		cam.move(CameraMovement::FORWARD, 0.01f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		cam.move(CameraMovement::BACKWARD, 0.01f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		cam.move(CameraMovement::LEFT, 0.01f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		cam.move(CameraMovement::RIGHT, 0.01f);
-	}
-}
-
-void framebuffer_size_callback(
-		GLFWwindow* window,
-		int width,
-		int height
-	) {
-	glViewport(0, 0, width, height);
-}
