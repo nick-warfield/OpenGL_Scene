@@ -1,78 +1,82 @@
+#ifndef RECTANGLE_HPP
+#define RECTANGLE_HPP
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "stb_image.h"
 #include "Shader.hpp"
+#include "Texture.hpp"
 
-class Rectangle {
-public:
-	Shader shader;
-	unsigned int texture, awesome_texture;
-	unsigned int VBO, VAO, EBO;
-	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
-	float vertices[];
+#include <string>
+#include <vector>
 
-	Rectangle(float verts[], unsigned int size, Shader shader_program, const char* texture_path) :
-	shader(shader_program) {
-		// texture stuff, put it in a class later
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		int width, height, nrChannels;
-		unsigned char *data = stbi_load(texture_path, &width, &height, &nrChannels, 0);
-		if (data) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-		} else {
-			std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
-
-		stbi_set_flip_vertically_on_load(true);
-		glGenTextures(1, &awesome_texture);
-		glBindTexture(GL_TEXTURE_2D, awesome_texture);
-		data = stbi_load("resources/awesomeface.png", &width, &height, &nrChannels, 0);
-		if (data) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-		} else {
-			std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, awesome_texture);
-
-		// vertex stuff
-		glGenBuffers(1, &VBO);
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &EBO);
-
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-		glBufferData(GL_ARRAY_BUFFER, size, verts, GL_STATIC_DRAW);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-	}
-
-	void draw(void) {
-		shader.use();
-		shader.set_int("texture1", 0);
-		shader.set_int("texture2", 1);
-		glBindVertexArray(VAO);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
+struct Attribute {
+	uint count;
+	uint type;
+	bool should_normalize;
+	size_t size;
 };
+
+struct Shape {
+	unsigned int vertex_buffer_object;
+	unsigned int vertex_array_object;
+	unsigned int element_buffer_object;
+	unsigned int number_of_points;
+
+	unsigned int shader;
+	std::vector<unsigned int> texture;
+};
+
+void draw_shape(Shape shape) {
+	glUseProgram(shape.shader);
+
+	for (int i = 0; i < shape.texture.size(); ++i) {
+		bind_texture(shape.texture[i], i);
+		std::string name = "texture" + std::to_string(i);
+		glUniform1i(glGetUniformLocation(shape.shader, name.c_str()), i);
+	}
+
+	glBindVertexArray(shape.vertex_array_object);
+	glDrawElements(GL_TRIANGLES, shape.number_of_points, GL_UNSIGNED_INT, 0);
+}
+
+Shape make_shape(
+		std::vector<float> verts,
+		std::vector<int> indices,
+		std::vector<Attribute> attributes,
+		std::vector<uint> textures,
+		unsigned int shader) {
+	Shape s;
+	s.texture = textures;
+	s.shader = shader;
+	s.number_of_points = indices.size();
+
+	// vertex stuff
+	glGenBuffers(1, &s.vertex_buffer_object);
+	glGenVertexArrays(1, &s.vertex_array_object);
+	glGenBuffers(1, &s.element_buffer_object);
+
+	glBindVertexArray(s.vertex_array_object);
+	glBindBuffer(GL_ARRAY_BUFFER, s.vertex_buffer_object);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s.element_buffer_object);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * verts.size(), verts.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), indices.data(), GL_STATIC_DRAW);
+
+	// attribute stuff
+	size_t size = 0;
+	for (auto a : attributes) { size += a.size * a.count; }
+
+	int i = 0;
+	size_t offset = 0;
+	for (auto a : attributes) {
+		glVertexAttribPointer(i, a.count, a.type, a.should_normalize, size, (void*)offset);
+		glEnableVertexAttribArray(i);
+		offset += a.size * a.count;
+		++i;
+	}
+	return s;
+}
+
+#endif
