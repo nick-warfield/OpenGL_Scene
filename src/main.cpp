@@ -7,7 +7,7 @@
 
 #include "Shader.hpp"
 #include "Texture.hpp"
-#include "Rectangle.hpp"
+#include "Shape.hpp"
 #include "Camera.hpp"
 
 #include <iostream>
