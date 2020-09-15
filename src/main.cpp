@@ -57,12 +57,16 @@ int main(void) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// this should all be handled by camera, probably
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
 		int viewLoc = glGetUniformLocation(rect.shader, "view");
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(cam.look()));
 		int projectionLoc = glGetUniformLocation(rect.shader, "projection");
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		glm::mat4 model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(1, -1, 1));
+		int modelLoc = glGetUniformLocation(rect.shader, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 		//float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
 		//rect.shader.set_float("ourColor", greenValue);

@@ -8,6 +8,9 @@
 
 #include <vector>
 
+// world space input --> screen space
+// that means it has to have a view matrix and projection matrix
+
 enum CameraMovement {
 	FORWARD,
 	BACKWARD,

@@ -5,6 +5,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// easy local space manipulation
+// easy world space conversion
+// basically, creates a model matix
 struct Transform {
 	glm::vec3 position;
 	glm::vec3 rotation;
