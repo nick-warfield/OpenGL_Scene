@@ -51,6 +51,22 @@ int main(void) {
 
 	Shape rect = make_cube();
 
+	// light object, it uses the same vertices as the cube
+	uint lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, rect.vertex_buffer_object);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rect.element_buffer_object);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// casting light on object
+	glUseProgram(rect.shader);
+	glUniform3f(glGetUniformLocation(rect.shader, "light_color"), 1.0, 1.0, 1.0);
+
+	uint light_shader = make_shader("resources/vertex_shader.glsl", "resources/light_fragment_shader.glsl");
+	glUseProgram(light_shader);
+
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -65,6 +81,9 @@ int main(void) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// need to make sure I'm using the correct shader
+		glUseProgram(rect.shader);
+
 		// this should all be handled by camera, probably
 		glm::mat4 view = get_view(camera, glm::vec3(0, 1, 0));
 		int viewLoc = glGetUniformLocation(rect.shader, "view");
@@ -78,9 +97,24 @@ int main(void) {
 		//rect.shader.set_float("ourColor", greenValue);
 
 		glm::mat4 trans = glm::mat4(1.0);
-		trans = glm::translate(trans, glm::vec3(1, -1, 1));
-		trans = glm::scale(trans, glm::vec3(1, 0.25, 1));
 		draw_shape(rect, trans);
+		trans = glm::translate(trans, glm::vec3(-1.0));
+		draw_shape(rect, trans);
+		trans = glm::translate(trans, glm::vec3(-1.0));
+		draw_shape(rect, trans);
+
+		glUseProgram(light_shader);
+
+		glm::mat4 light_transform = glm::mat4(1.0f);
+		light_transform = glm::translate(light_transform, glm::vec3(1.2f, 1.0f, -1.0f));
+		light_transform = glm::scale(light_transform, glm::vec3(0.2f));
+
+		glUniformMatrix4fv(glGetUniformLocation(light_shader, "model"), 1, GL_FALSE, glm::value_ptr(light_transform));
+		glUniformMatrix4fv(glGetUniformLocation(light_shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(light_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+		glBindVertexArray(lightVAO);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 		glBindVertexArray(0);
 
@@ -141,48 +175,48 @@ void framebuffer_size_callback(
 
 Shape make_cube(void) {
 	std::vector<float> verts = {
-		// positions			// colors			// texture coords
-		-0.5f, -0.5f, -0.5f,	1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,	0.0f, 0.0f, 1.0f,	1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f, 0.0f,	1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 1.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	1.0f, 0.0f, 1.0f,	0.0f, 0.0f,
+		// positions			// texture coords
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,
 
-		-0.5f, -0.5f,  0.5f,	1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	0.0f, 0.0f, 1.0f,	1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f, 0.0f,	1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f, 1.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,	1.0f, 0.0f, 1.0f,	0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
 
-		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, 1.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	1.0f, 1.0f, 0.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 1.0f, 1.0f,	0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f, 1.0f,	1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
 
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,	0.0f, 0.0f, 1.0f,	0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,	1.0f, 1.0f, 0.0f,	0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,	0.0f, 1.0f, 1.0f,	0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f, 1.0f,	1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
 
-		-0.5f, -0.5f, -0.5f,	1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,	0.0f, 0.0f, 1.0f,	1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,	1.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 1.0f, 1.0f,	0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,	1.0f, 0.0f, 1.0f,	0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,	1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
 
-		-0.5f,  0.5f, -0.5f,	1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,	0.0f, 0.0f, 1.0f,	1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f, 1.0f,	0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,	1.0f, 0.0f, 1.0f,	0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f
 	};
 
 	std::vector<int> indices = {
@@ -196,12 +230,12 @@ Shape make_cube(void) {
 
 	std::vector<Attribute> attributes;
 	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
-	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
+	//attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
 	attributes.push_back(make_attribute(2, GL_FLOAT, false, sizeof(float)));
 
 	std::vector<uint> textures;
 	textures.push_back(make_texture("resources/container.jpg"));
-	textures.push_back(make_texture("resources/awesomeface.png"));
+	//textures.push_back(make_texture("resources/awesomeface.png"));
 
 	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
 
