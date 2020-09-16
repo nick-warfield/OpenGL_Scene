@@ -14,7 +14,7 @@
 #include <iostream>
 #include <cmath>
 
-Cam camera = make_default_camera();
+Camera camera = make_default_camera();
 bool first_mouse = true;
 float lastX = 400.0f, lastY = 300.0f;
 
