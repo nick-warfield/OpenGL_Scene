@@ -3,9 +3,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.hpp"
 #include "Texture.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <vector>
 
@@ -22,7 +26,7 @@ Attribute make_attribute(
 	return a;
 }
 
-void draw_shape(Shape shape) {
+void draw_shape(Shape shape, glm::mat4 transform) {
 	glUseProgram(shape.shader);
 
 	for (int i = 0; i < shape.texture.size(); ++i) {
@@ -30,6 +34,8 @@ void draw_shape(Shape shape) {
 		std::string name = "texture" + std::to_string(i);
 		glUniform1i(glGetUniformLocation(shape.shader, name.c_str()), i);
 	}
+
+	glUniformMatrix4fv(glGetUniformLocation(shape.shader, "model"), 1, GL_FALSE, glm::value_ptr(transform));
 
 	glBindVertexArray(shape.vertex_array_object);
 	glDrawElements(GL_TRIANGLES, shape.number_of_points, GL_UNSIGNED_INT, 0);

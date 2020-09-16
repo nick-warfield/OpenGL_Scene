@@ -1,6 +1,9 @@
+// this should really be a model struct/class
+
 #ifndef SHAPE_HPP
 #define SHAPE_HPP
 
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
 struct Attribute {
@@ -32,6 +35,6 @@ Shape make_shape(
 		std::vector<Attribute> attributes,
 		std::vector<unsigned int> textures,
 		unsigned int shader);
-void draw_shape(Shape shape);
+void draw_shape(Shape shape, glm::mat4 transform);
 
 #endif
