@@ -63,6 +63,7 @@ int main(void) {
 
 	// casting light on object
 	auto light_pos = glm::vec3(1.2f, 1.0f, 2.0f);
+	auto light_dir = glm::vec3(-0.2f, -1.0f, -0.3f);
 	glUseProgram(rect.shader);
 
 	// set material of model
@@ -71,12 +72,20 @@ int main(void) {
 	glUniform3f(glGetUniformLocation(rect.shader, "material.specular"), 0.5f, 0.5f, 0.5f);
 	glUniform1f(glGetUniformLocation(rect.shader, "material.shininess"), 32.0f);
 
-	// set light intensity
-	//glUniform3f(glGetUniformLocation(rect.shader, "light_color"), 1.0, 1.0, 1.0);
-	glUniform3f(glGetUniformLocation(rect.shader, "light.position"), light_pos.x, light_pos.y, light_pos.z);
-	glUniform3f(glGetUniformLocation(rect.shader, "light.ambient"), 0.2f, 0.2f, 0.2f);
-	glUniform3f(glGetUniformLocation(rect.shader, "light.diffuse"), 0.5f, 0.5f, 0.5f);
-	glUniform3f(glGetUniformLocation(rect.shader, "light.specular"), 1.0f, 1.0f, 1.0f);
+	// set directional light properties
+	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.direction"), light_dir.x, light_dir.y, light_dir.z);
+	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.ambient"), 0.2f, 0.2f, 0.2f);
+	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.diffuse"), 0.5f, 0.5f, 0.5f);
+	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.specular"), 1.0f, 1.0f, 1.0f);
+
+	// set point light properties
+	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].position"), light_pos.x, light_pos.y, light_pos.z);
+	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].ambient"), 0.2f, 0.2f, 0.2f);
+	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].diffuse"), 0.5f, 0.5f, 0.5f);
+	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].specular"), 1.0f, 1.0f, 1.0f);
+	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].constant"), 1.0f);
+	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].linear"), 0.09f);
+	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].quadratic"), 0.032f);
 
 	uint light_shader = make_shader("resources/vertex_shader.glsl", "resources/light_fragment_shader.glsl");
 
