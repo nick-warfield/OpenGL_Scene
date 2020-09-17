@@ -27,7 +27,7 @@ Attribute make_attribute(
 }
 
 void draw_shape(Shape shape, glm::mat4 transform) {
-	glUseProgram(shape.shader);
+	//glUseProgram(shape.shader);
 
 	for (int i = 0; i < shape.texture.size(); ++i) {
 		bind_texture(shape.texture[i], i);

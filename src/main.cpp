@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -57,15 +58,16 @@ int main(void) {
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, rect.vertex_buffer_object);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rect.element_buffer_object);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// casting light on object
+	auto light_pos = glm::vec3(1.2f, 1.0f, 2.0f);
 	glUseProgram(rect.shader);
 	glUniform3f(glGetUniformLocation(rect.shader, "light_color"), 1.0, 1.0, 1.0);
+	glUniform3f(glGetUniformLocation(rect.shader, "light_position"), light_pos.x, light_pos.y, light_pos.z);
 
 	uint light_shader = make_shader("resources/vertex_shader.glsl", "resources/light_fragment_shader.glsl");
-	glUseProgram(light_shader);
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -93,20 +95,19 @@ int main(void) {
 		int projectionLoc = glGetUniformLocation(rect.shader, "projection");
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		//float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
-		//rect.shader.set_float("ourColor", greenValue);
+		auto view_pos = camera.position;
+		glUniform3f(glGetUniformLocation(rect.shader, "view_position"), view_pos.x, view_pos.y, view_pos.z);
 
 		glm::mat4 trans = glm::mat4(1.0);
 		draw_shape(rect, trans);
-		trans = glm::translate(trans, glm::vec3(-1.0));
+		trans = glm::translate(trans, glm::vec3(1.5, 3.0, -2));
 		draw_shape(rect, trans);
-		trans = glm::translate(trans, glm::vec3(-1.0));
+		trans = glm::translate(trans, glm::vec3(2.5, -5, 1));
 		draw_shape(rect, trans);
 
 		glUseProgram(light_shader);
-
 		glm::mat4 light_transform = glm::mat4(1.0f);
-		light_transform = glm::translate(light_transform, glm::vec3(1.2f, 1.0f, -1.0f));
+		light_transform = glm::translate(light_transform, light_pos);
 		light_transform = glm::scale(light_transform, glm::vec3(0.2f));
 
 		glUniformMatrix4fv(glGetUniformLocation(light_shader, "model"), 1, GL_FALSE, glm::value_ptr(light_transform));
@@ -175,48 +176,48 @@ void framebuffer_size_callback(
 
 Shape make_cube(void) {
 	std::vector<float> verts = {
-		// positions			// texture coords
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,	1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,
+		// positions			// texture coords	// normals
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,			0.0f, 0.0f, -1.0f,
+		 0.5f, -0.5f, -0.5f,	1.0f, 0.0f,			0.0f, 0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 0.0f, -1.0f,
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,			0.0f, 0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,			0.0f, 0.0f, -1.0f,
 
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 0.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,			0.0f, 0.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,			0.0f, 0.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f,			0.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 0.0f, 1.0f,
 
-		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
 
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			1.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			1.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			1.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			1.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			1.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			1.0f, 0.0f, 0.0f,
 
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,	1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			0.0f, -1.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,	1.0f, 1.0f,			0.0f, -1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, -1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, -1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, -1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			0.0f, -1.0f, 0.0f,
 
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,	0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,			0.0f, 1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 		0.0f, 1.0f, 0.0f
 	};
 
 	std::vector<int> indices = {
@@ -230,12 +231,11 @@ Shape make_cube(void) {
 
 	std::vector<Attribute> attributes;
 	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
-	//attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
 	attributes.push_back(make_attribute(2, GL_FLOAT, false, sizeof(float)));
+	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
 
 	std::vector<uint> textures;
 	textures.push_back(make_texture("resources/container.jpg"));
-	//textures.push_back(make_texture("resources/awesomeface.png"));
 
 	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
 
