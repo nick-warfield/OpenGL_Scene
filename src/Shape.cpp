@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <vector>
+#include <tuple>
 
 Attribute make_attribute(
 		unsigned int count,
@@ -31,8 +32,6 @@ void draw_shape(Shape shape, glm::mat4 transform) {
 
 	for (int i = 0; i < shape.texture.size(); ++i) {
 		bind_texture(shape.texture[i], i);
-		std::string name = "texture" + std::to_string(i);
-		glUniform1i(glGetUniformLocation(shape.shader, name.c_str()), i);
 	}
 
 	glUniformMatrix4fv(glGetUniformLocation(shape.shader, "model"), 1, GL_FALSE, glm::value_ptr(transform));
@@ -45,12 +44,18 @@ Shape make_shape(
 		std::vector<float> verts,
 		std::vector<int> indices,
 		std::vector<Attribute> attributes,
-		std::vector<uint> textures,
+		std::vector<std::tuple<uint, std::string>> textures,
 		unsigned int shader) {
 	Shape s;
-	s.texture = textures;
 	s.shader = shader;
 	s.number_of_points = indices.size();
+
+	glUseProgram(shader);
+	for (int i = 0; i < textures.size(); ++i) {
+		s.texture.push_back(std::get<0>(textures[i]));
+		bind_texture(std::get<0>(textures[i]), i);
+		glUniform1i(glGetUniformLocation(shader, std::get<1>(textures[i]).c_str()), i);
+	}
 
 	// vertex stuff
 	glGenBuffers(1, &s.vertex_buffer_object);

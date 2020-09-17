@@ -64,8 +64,19 @@ int main(void) {
 	// casting light on object
 	auto light_pos = glm::vec3(1.2f, 1.0f, 2.0f);
 	glUseProgram(rect.shader);
-	glUniform3f(glGetUniformLocation(rect.shader, "light_color"), 1.0, 1.0, 1.0);
-	glUniform3f(glGetUniformLocation(rect.shader, "light_position"), light_pos.x, light_pos.y, light_pos.z);
+
+	// set material of model
+	glUniform3f(glGetUniformLocation(rect.shader, "material.ambient"), 1.0f, 0.5f, 0.31f);
+	glUniform3f(glGetUniformLocation(rect.shader, "material.diffuse"), 1.0f, 0.5f, 0.31f);
+	glUniform3f(glGetUniformLocation(rect.shader, "material.specular"), 0.5f, 0.5f, 0.5f);
+	glUniform1f(glGetUniformLocation(rect.shader, "material.shininess"), 32.0f);
+
+	// set light intensity
+	//glUniform3f(glGetUniformLocation(rect.shader, "light_color"), 1.0, 1.0, 1.0);
+	glUniform3f(glGetUniformLocation(rect.shader, "light.position"), light_pos.x, light_pos.y, light_pos.z);
+	glUniform3f(glGetUniformLocation(rect.shader, "light.ambient"), 0.2f, 0.2f, 0.2f);
+	glUniform3f(glGetUniformLocation(rect.shader, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+	glUniform3f(glGetUniformLocation(rect.shader, "light.specular"), 1.0f, 1.0f, 1.0f);
 
 	uint light_shader = make_shader("resources/vertex_shader.glsl", "resources/light_fragment_shader.glsl");
 
@@ -234,8 +245,9 @@ Shape make_cube(void) {
 	attributes.push_back(make_attribute(2, GL_FLOAT, false, sizeof(float)));
 	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
 
-	std::vector<uint> textures;
-	textures.push_back(make_texture("resources/container.jpg"));
+	std::vector<std::tuple<uint, std::string>> textures;
+	textures.push_back(std::make_tuple(make_texture("resources/container2.png"), std::string("material.diffuse")));
+	textures.push_back(std::make_tuple(make_texture("resources/container2_specular.png"), std::string("material.specular")));
 
 	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
 

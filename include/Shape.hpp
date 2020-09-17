@@ -5,6 +5,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <tuple>
 
 struct Attribute {
 	unsigned int count;
@@ -33,7 +34,7 @@ Shape make_shape(
 		std::vector<float> verts,
 		std::vector<int> indices,
 		std::vector<Attribute> attributes,
-		std::vector<unsigned int> textures,
+		std::vector<std::tuple<unsigned int, std::string>> textures,
 		unsigned int shader);
 void draw_shape(Shape shape, glm::mat4 transform);
 
