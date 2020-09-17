@@ -29,8 +29,8 @@ find_package(glfw3 REQUIRED)
 message(STATUS "Found GLFW3 in ${glfw3_DIR}")
 
 # ASSIMP
-#find_package(ASSIMP REQUIRED)
-#message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
+find_package(assimp REQUIRED)
+message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
 
 # STB_IMAGE
 add_library(STB_IMAGE "${CMAKE_SOURCE_DIR}/src/stb_image.cpp")
