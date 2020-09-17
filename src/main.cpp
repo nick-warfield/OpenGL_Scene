@@ -87,6 +87,14 @@ int main(void) {
 	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].linear"), 0.09f);
 	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].quadratic"), 0.032f);
 
+	// set spot light properties
+	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.ambient"), 0.2f, 0.2f, 0.2f);
+	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.diffuse"), 0.5f, 0.5f, 0.5f);
+	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.specular"), 1.0f, 1.0f, 1.0f);
+	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.constant"), 1.0f);
+	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.linear"), 0.09f);
+	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.quadratic"), 0.032f);
+
 	uint light_shader = make_shader("resources/vertex_shader.glsl", "resources/light_fragment_shader.glsl");
 
 	// wireframe mode
@@ -117,6 +125,13 @@ int main(void) {
 
 		auto view_pos = camera.position;
 		glUniform3f(glGetUniformLocation(rect.shader, "view_position"), view_pos.x, view_pos.y, view_pos.z);
+
+		// set flash light position
+		glUniform3f(glGetUniformLocation(rect.shader, "spot_light.position"), camera.position.x, camera.position.y, camera.position.z);
+		auto zvec = std::get<2>(get_vectors(camera, glm::vec3(0, 1, 0)));
+		glUniform3f(glGetUniformLocation(rect.shader, "spot_light.direction"), zvec.x, zvec.y, zvec.z);
+		glUniform1f(glGetUniformLocation(rect.shader, "spot_light.cutoff"), glm::cos(glm::radians(12.5f)));
+		glUniform1f(glGetUniformLocation(rect.shader, "spot_light.outer_cutoff"), glm::cos(glm::radians(15.0f)));
 
 		glm::mat4 trans = glm::mat4(1.0);
 		draw_shape(rect, trans);
