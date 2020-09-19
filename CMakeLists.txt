@@ -39,6 +39,6 @@ add_library(STB_IMAGE "${CMAKE_SOURCE_DIR}/src/stb_image.cpp")
 add_library(GLAD "${CMAKE_SOURCE_DIR}/src/glad.c")
 
 # Put all libraries into a variable
-set(LIBS glfw GL X11 pthread Xrandr Xi dl)
+set(LIBS glfw GL X11 assimp pthread Xrandr Xi dl)
 include_directories("${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(${PROJECT_NAME} ${LIBS})
