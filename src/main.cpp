@@ -7,9 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "stb_image.h"
+
+#include "Model.hpp"
 #include "Shader.hpp"
-#include "Texture.hpp"
-#include "Shape.hpp"
 #include "Camera.hpp"
 
 #include <iostream>
@@ -23,8 +24,6 @@ void processInput(GLFWwindow*);
 void framebuffer_size_callback(GLFWwindow*, int, int);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double _xoffset, double yoffset);
-
-Shape make_cube(void);
 
 int main(void) {
 	glfwInit();
@@ -50,52 +49,54 @@ int main(void) {
 		return -1;
 	}
 
-	Shape rect = make_cube();
+	stbi_set_flip_vertically_on_load(true);
+
+	Model model;
 
 	// light object, it uses the same vertices as the cube
-	uint lightVAO;
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, rect.vertex_buffer_object);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rect.element_buffer_object);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// casting light on object
-	auto light_pos = glm::vec3(1.2f, 1.0f, 2.0f);
-	auto light_dir = glm::vec3(-0.2f, -1.0f, -0.3f);
-	glUseProgram(rect.shader);
-
-	// set material of model
-	glUniform3f(glGetUniformLocation(rect.shader, "material.ambient"), 1.0f, 0.5f, 0.31f);
-	glUniform3f(glGetUniformLocation(rect.shader, "material.diffuse"), 1.0f, 0.5f, 0.31f);
-	glUniform3f(glGetUniformLocation(rect.shader, "material.specular"), 0.5f, 0.5f, 0.5f);
-	glUniform1f(glGetUniformLocation(rect.shader, "material.shininess"), 32.0f);
-
-	// set directional light properties
-	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.direction"), light_dir.x, light_dir.y, light_dir.z);
-	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.ambient"), 0.2f, 0.2f, 0.2f);
-	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.diffuse"), 0.5f, 0.5f, 0.5f);
-	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.specular"), 1.0f, 1.0f, 1.0f);
-
-	// set point light properties
-	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].position"), light_pos.x, light_pos.y, light_pos.z);
-	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].ambient"), 0.2f, 0.2f, 0.2f);
-	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].diffuse"), 0.5f, 0.5f, 0.5f);
-	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].specular"), 1.0f, 1.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].linear"), 0.09f);
-	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].quadratic"), 0.032f);
-
-	// set spot light properties
-	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.ambient"), 0.2f, 0.2f, 0.2f);
-	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.diffuse"), 0.5f, 0.5f, 0.5f);
-	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.specular"), 1.0f, 1.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.linear"), 0.09f);
-	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.quadratic"), 0.032f);
-
-	uint light_shader = make_shader("resources/vertex_shader.glsl", "resources/light_fragment_shader.glsl");
+//	uint lightVAO;
+//	glGenVertexArrays(1, &lightVAO);
+//	glBindVertexArray(lightVAO);
+//	glBindBuffer(GL_ARRAY_BUFFER, rect.vertex_buffer_object);
+//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rect.element_buffer_object);
+//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+//	glEnableVertexAttribArray(0);
+//
+//	// casting light on object
+//	auto light_pos = glm::vec3(1.2f, 1.0f, 2.0f);
+//	auto light_dir = glm::vec3(-0.2f, -1.0f, -0.3f);
+//	glUseProgram(rect.shader);
+//
+//	// set material of model
+//	glUniform3f(glGetUniformLocation(rect.shader, "material.ambient"), 1.0f, 0.5f, 0.31f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "material.diffuse"), 1.0f, 0.5f, 0.31f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "material.specular"), 0.5f, 0.5f, 0.5f);
+//	glUniform1f(glGetUniformLocation(rect.shader, "material.shininess"), 32.0f);
+//
+//	// set directional light properties
+//	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.direction"), light_dir.x, light_dir.y, light_dir.z);
+//	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.ambient"), 0.2f, 0.2f, 0.2f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.diffuse"), 0.5f, 0.5f, 0.5f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "directional_light.specular"), 1.0f, 1.0f, 1.0f);
+//
+//	// set point light properties
+//	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].position"), light_pos.x, light_pos.y, light_pos.z);
+//	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].ambient"), 0.2f, 0.2f, 0.2f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].diffuse"), 0.5f, 0.5f, 0.5f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "point_light[0].specular"), 1.0f, 1.0f, 1.0f);
+//	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].constant"), 1.0f);
+//	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].linear"), 0.09f);
+//	glUniform1f(glGetUniformLocation(rect.shader, "point_light[0].quadratic"), 0.032f);
+//
+//	// set spot light properties
+//	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.ambient"), 0.2f, 0.2f, 0.2f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.diffuse"), 0.5f, 0.5f, 0.5f);
+//	glUniform3f(glGetUniformLocation(rect.shader, "spot_light.specular"), 1.0f, 1.0f, 1.0f);
+//	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.constant"), 1.0f);
+//	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.linear"), 0.09f);
+//	glUniform1f(glGetUniformLocation(rect.shader, "spot_light.quadratic"), 0.032f);
+//
+//	uint light_shader = make_shader("resources/vertex_shader.glsl", "resources/light_fragment_shader.glsl");
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -111,46 +112,46 @@ int main(void) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// need to make sure I'm using the correct shader
-		glUseProgram(rect.shader);
-
-		// this should all be handled by camera, probably
-		glm::mat4 view = get_view(camera, glm::vec3(0, 1, 0));
-		int viewLoc = glGetUniformLocation(rect.shader, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		glm::mat4 projection = get_projection(camera);
-		int projectionLoc = glGetUniformLocation(rect.shader, "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		auto view_pos = camera.position;
-		glUniform3f(glGetUniformLocation(rect.shader, "view_position"), view_pos.x, view_pos.y, view_pos.z);
-
-		// set flash light position
-		glUniform3f(glGetUniformLocation(rect.shader, "spot_light.position"), camera.position.x, camera.position.y, camera.position.z);
-		auto zvec = std::get<2>(get_vectors(camera, glm::vec3(0, 1, 0)));
-		glUniform3f(glGetUniformLocation(rect.shader, "spot_light.direction"), zvec.x, zvec.y, zvec.z);
-		glUniform1f(glGetUniformLocation(rect.shader, "spot_light.cutoff"), glm::cos(glm::radians(12.5f)));
-		glUniform1f(glGetUniformLocation(rect.shader, "spot_light.outer_cutoff"), glm::cos(glm::radians(15.0f)));
-
-		glm::mat4 trans = glm::mat4(1.0);
-		draw_shape(rect, trans);
-		trans = glm::translate(trans, glm::vec3(1.5, 3.0, -2));
-		draw_shape(rect, trans);
-		trans = glm::translate(trans, glm::vec3(2.5, -5, 1));
-		draw_shape(rect, trans);
-
-		glUseProgram(light_shader);
-		glm::mat4 light_transform = glm::mat4(1.0f);
-		light_transform = glm::translate(light_transform, light_pos);
-		light_transform = glm::scale(light_transform, glm::vec3(0.2f));
-
-		glUniformMatrix4fv(glGetUniformLocation(light_shader, "model"), 1, GL_FALSE, glm::value_ptr(light_transform));
-		glUniformMatrix4fv(glGetUniformLocation(light_shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(light_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-		glBindVertexArray(lightVAO);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+//		// need to make sure I'm using the correct shader
+//		glUseProgram(rect.shader);
+//
+//		// this should all be handled by camera, probably
+//		glm::mat4 view = get_view(camera, glm::vec3(0, 1, 0));
+//		int viewLoc = glGetUniformLocation(rect.shader, "view");
+//		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+//
+//		glm::mat4 projection = get_projection(camera);
+//		int projectionLoc = glGetUniformLocation(rect.shader, "projection");
+//		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+//
+//		auto view_pos = camera.position;
+//		glUniform3f(glGetUniformLocation(rect.shader, "view_position"), view_pos.x, view_pos.y, view_pos.z);
+//
+//		// set flash light position
+//		glUniform3f(glGetUniformLocation(rect.shader, "spot_light.position"), camera.position.x, camera.position.y, camera.position.z);
+//		auto zvec = std::get<2>(get_vectors(camera, glm::vec3(0, 1, 0)));
+//		glUniform3f(glGetUniformLocation(rect.shader, "spot_light.direction"), zvec.x, zvec.y, zvec.z);
+//		glUniform1f(glGetUniformLocation(rect.shader, "spot_light.cutoff"), glm::cos(glm::radians(12.5f)));
+//		glUniform1f(glGetUniformLocation(rect.shader, "spot_light.outer_cutoff"), glm::cos(glm::radians(15.0f)));
+//
+//		glm::mat4 trans = glm::mat4(1.0);
+//		draw_shape(rect, trans);
+//		trans = glm::translate(trans, glm::vec3(1.5, 3.0, -2));
+//		draw_shape(rect, trans);
+//		trans = glm::translate(trans, glm::vec3(2.5, -5, 1));
+//		draw_shape(rect, trans);
+//
+//		glUseProgram(light_shader);
+//		glm::mat4 light_transform = glm::mat4(1.0f);
+//		light_transform = glm::translate(light_transform, light_pos);
+//		light_transform = glm::scale(light_transform, glm::vec3(0.2f));
+//
+//		glUniformMatrix4fv(glGetUniformLocation(light_shader, "model"), 1, GL_FALSE, glm::value_ptr(light_transform));
+//		glUniformMatrix4fv(glGetUniformLocation(light_shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+//		glUniformMatrix4fv(glGetUniformLocation(light_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+//
+//		glBindVertexArray(lightVAO);
+//		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 		glBindVertexArray(0);
 
@@ -209,72 +210,72 @@ void framebuffer_size_callback(
 	glViewport(0, 0, width, height);
 }
 
-Shape make_cube(void) {
-	std::vector<float> verts = {
-		// positions			// texture coords	// normals
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,			0.0f, 0.0f, -1.0f,
-		 0.5f, -0.5f, -0.5f,	1.0f, 0.0f,			0.0f, 0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 0.0f, -1.0f,
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,			0.0f, 0.0f, -1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,			0.0f, 0.0f, -1.0f,
-
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,			0.0f, 0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,			0.0f, 0.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f,			0.0f, 0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 0.0f, 1.0f,
-
-		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
-
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			1.0f, 0.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			1.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			1.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			1.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			1.0f, 0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			1.0f, 0.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			0.0f, -1.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,	1.0f, 1.0f,			0.0f, -1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, -1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, -1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, -1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			0.0f, -1.0f, 0.0f,
-
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,			0.0f, 1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 		0.0f, 1.0f, 0.0f
-	};
-
-	std::vector<int> indices = {
-		0, 1, 2, 3, 4, 5,
-		6, 7, 8, 9, 10, 11,
-		12, 13, 14, 15, 16, 17,
-		18, 19, 20, 21, 22, 23,
-		24, 25, 26, 27, 28, 29,
-		30, 31, 32, 33, 34, 35
-	};
-
-	std::vector<Attribute> attributes;
-	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
-	attributes.push_back(make_attribute(2, GL_FLOAT, false, sizeof(float)));
-	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
-
-	std::vector<std::tuple<uint, std::string>> textures;
-	textures.push_back(std::make_tuple(make_texture("resources/container2.png"), std::string("material.diffuse")));
-	textures.push_back(std::make_tuple(make_texture("resources/container2_specular.png"), std::string("material.specular")));
-
-	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
-
-	return make_shape(verts, indices, attributes, textures, shader);
-}
+// Shape make_cube(void) {
+// 	std::vector<float> verts = {
+// 		// positions			// texture coords	// normals
+// 		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,			0.0f, 0.0f, -1.0f,
+// 		 0.5f, -0.5f, -0.5f,	1.0f, 0.0f,			0.0f, 0.0f, -1.0f,
+// 		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 0.0f, -1.0f,
+// 		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 0.0f, -1.0f,
+// 		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,			0.0f, 0.0f, -1.0f,
+// 		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f,			0.0f, 0.0f, -1.0f,
+// 
+// 		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 0.0f, 1.0f,
+// 		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 0.0f, 1.0f,
+// 		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,			0.0f, 0.0f, 1.0f,
+// 		 0.5f,  0.5f,  0.5f,	1.0f, 1.0f,			0.0f, 0.0f, 1.0f,
+// 		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f,			0.0f, 0.0f, 1.0f,
+// 		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 0.0f, 1.0f,
+// 
+// 		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
+// 		-0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
+// 		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
+// 		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			-1.0f, 0.0f, 0.0f,
+// 		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
+// 		-0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			-1.0f, 0.0f, 0.0f,
+// 
+// 		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			1.0f, 0.0f, 0.0f,
+// 		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			1.0f, 0.0f, 0.0f,
+// 		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			1.0f, 0.0f, 0.0f,
+// 		 0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			1.0f, 0.0f, 0.0f,
+// 		 0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			1.0f, 0.0f, 0.0f,
+// 		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			1.0f, 0.0f, 0.0f,
+// 
+// 		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			0.0f, -1.0f, 0.0f,
+// 		 0.5f, -0.5f, -0.5f,	1.0f, 1.0f,			0.0f, -1.0f, 0.0f,
+// 		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, -1.0f, 0.0f,
+// 		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f,			0.0f, -1.0f, 0.0f,
+// 		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f,			0.0f, -1.0f, 0.0f,
+// 		-0.5f, -0.5f, -0.5f,	0.0f, 1.0f,			0.0f, -1.0f, 0.0f,
+// 
+// 		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f,			0.0f, 1.0f, 0.0f,
+// 		 0.5f,  0.5f, -0.5f,	1.0f, 1.0f,			0.0f, 1.0f, 0.0f,
+// 		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 1.0f, 0.0f,
+// 		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f,			0.0f, 1.0f, 0.0f,
+// 		-0.5f,  0.5f,  0.5f,	0.0f, 0.0f,			0.0f, 1.0f, 0.0f,
+// 		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 		0.0f, 1.0f, 0.0f
+// 	};
+// 
+// 	std::vector<int> indices = {
+// 		0, 1, 2, 3, 4, 5,
+// 		6, 7, 8, 9, 10, 11,
+// 		12, 13, 14, 15, 16, 17,
+// 		18, 19, 20, 21, 22, 23,
+// 		24, 25, 26, 27, 28, 29,
+// 		30, 31, 32, 33, 34, 35
+// 	};
+// 
+// 	std::vector<Attribute> attributes;
+// 	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
+// 	attributes.push_back(make_attribute(2, GL_FLOAT, false, sizeof(float)));
+// 	attributes.push_back(make_attribute(3, GL_FLOAT, false, sizeof(float)));
+// 
+// 	std::vector<std::tuple<uint, std::string>> textures;
+// 	textures.push_back(std::make_tuple(make_texture("resources/container2.png"), std::string("material.diffuse")));
+// 	textures.push_back(std::make_tuple(make_texture("resources/container2_specular.png"), std::string("material.specular")));
+// 
+// 	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
+// 
+// 	return make_shape(verts, indices, attributes, textures, shader);
+// }
 

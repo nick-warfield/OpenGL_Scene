@@ -14,6 +14,7 @@ struct Attribute {
 	size_t size;
 };
 
+// this is really a mesh with some extras
 struct Shape {
 	unsigned int vertex_buffer_object;
 	unsigned int vertex_array_object;
