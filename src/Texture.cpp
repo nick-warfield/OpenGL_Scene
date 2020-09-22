@@ -36,6 +36,8 @@ unsigned int load_texture(const char * texture_path) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		std::cout << "Loaded texture from: " << texture_path << std::endl;
 	} else {
 		std::cout << "Failed to load texture from: " << texture_path << std::endl;
 	}

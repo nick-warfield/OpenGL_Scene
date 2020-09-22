@@ -16,6 +16,7 @@
 
 struct Model {
 	std::vector<Mesh> mesh;
+	std::vector<Texture> loaded_texture;
 };
 
 void draw_model(const Model &model, unsigned int shader, glm::mat4 model_matrix) {
@@ -26,17 +27,32 @@ void draw_model(const Model &model, unsigned int shader, glm::mat4 model_matrix)
 	}
 }
 
-std::vector<Texture> load_material_textures(aiMaterial *material, aiTextureType type, std::string name) {
+std::vector<Texture> load_material_textures(std::vector<Texture> &loaded_textures, aiMaterial *material, aiTextureType type, std::string dir, std::string name) {
 	std::vector<Texture> t;
 	for (unsigned int i = 0; i < material->GetTextureCount(type); ++i) {
 		aiString str;
 		material->GetTexture(type, i, &str);
-		t.push_back(make_texture(std::string(str.C_Str()), name));
+		bool is_loaded = false;
+
+		for (auto tex : loaded_textures) {
+			std::cout << tex.name << std::endl << str.C_Str() << std::endl << std::endl;
+			if (std::strcmp(tex.name.data(), str.C_Str()) == 0) {
+				t.push_back(tex);
+				is_loaded = true;
+				break;
+			}
+		}
+
+		if (!is_loaded) {
+			auto texture = make_texture(std::string(str.C_Str()), dir + "/" + name + ".jpg");
+			t.push_back(texture);
+			loaded_textures.push_back(texture);
+		}
 	}
 	return t;
 }
 
-Mesh process_mesh(std::string directory, aiMesh *mesh, const aiScene *scene) {
+Mesh process_mesh(std::vector<Texture> &model_textures, std::string directory, aiMesh *mesh, const aiScene *scene) {
 	Mesh m;
 
 	// process vertices
@@ -72,8 +88,8 @@ Mesh process_mesh(std::string directory, aiMesh *mesh, const aiScene *scene) {
 	// process materials
 	if (mesh->mMaterialIndex >= 0) {
 		aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
-		std::vector<Texture> diffuse_maps = load_material_textures(mat, aiTextureType_DIFFUSE, "texture_diffuse");
-		std::vector<Texture> specular_maps = load_material_textures(mat, aiTextureType_SPECULAR, "texture_specular");
+		std::vector<Texture> diffuse_maps = load_material_textures(model_textures, mat, aiTextureType_DIFFUSE, directory, "diffuse");
+		std::vector<Texture> specular_maps = load_material_textures(model_textures, mat, aiTextureType_SPECULAR, directory, "specular");
 
 		m.texture.insert(m.texture.end(), diffuse_maps.begin(), diffuse_maps.end());
 		m.texture.insert(m.texture.end(), specular_maps.begin(), specular_maps.end());
@@ -82,14 +98,14 @@ Mesh process_mesh(std::string directory, aiMesh *mesh, const aiScene *scene) {
 	return m;
 }
 
-void process_node(std::vector<Mesh> output, std::string directory, aiNode *node, const aiScene *scene) {
+void process_node(std::vector<Mesh> output, std::vector<Texture> &loaded_texture, std::string directory, aiNode *node, const aiScene *scene) {
 	for (uint i = 0; i < node->mNumMeshes; ++i) {
 		aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-		output.push_back(process_mesh(directory, mesh, scene));
+		output.push_back(process_mesh(loaded_texture, directory, mesh, scene));
 	}
 
 	for (uint i = 0; i < node->mNumChildren; ++i) {
-		process_node(output, directory, node->mChildren[i], scene);
+		process_node(output, loaded_texture, directory, node->mChildren[i], scene);
 	}
 }
 
@@ -103,8 +119,9 @@ Model load_model(std::string model_path) {
 		std::cout << "Error: Assimp: " << importer.GetErrorString() << std::endl;
 		return m;
 	}
+	std::vector<Texture> t;
 	std::string directory = model_path.substr(0, model_path.find_last_of('/'));
-	process_node(m.mesh, directory, scene->mRootNode, scene);
+	process_node(m.mesh, t, directory, scene->mRootNode, scene);
 
 	return m;
 }
