@@ -51,10 +51,76 @@ int main(void) {
 	}
 
 	stbi_set_flip_vertically_on_load(true);
-
 	Model model = load_model(std::string("resources/backpack/backpack.obj"));
-	std::cout << std::endl;
-	//auto tex = make_texture(std::string("blag"), std::string("resources/backpack/diffuse.jpg"));
+
+	std::vector<Vertex> vertices = {
+		make_vertex(glm::vec3(-0.5f, -0.5f, -0.5f),	glm::vec3(0.0f, 0.0f, -1.0f),	glm::vec2(0.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f, -0.5f),	glm::vec3(0.0f, 0.0f, -1.0f),	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f, -0.5f),	glm::vec3(0.0f, 0.0f, -1.0f),	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f, -0.5f),	glm::vec3(0.0f, 0.0f, -1.0f),	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3(-0.5f,  0.5f, -0.5f),	glm::vec3(0.0f, 0.0f, -1.0f),	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3(-0.5f, -0.5f, -0.5f),	glm::vec3(0.0f, 0.0f, -1.0f),	glm::vec2(0.0f, 0.0f)),
+
+		make_vertex(glm::vec3(-0.5f, -0.5f,  0.5f),	glm::vec3(0.0f, 0.0f, 1.0f),	glm::vec2(0.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f,  0.5f),	glm::vec3(0.0f, 0.0f, 1.0f),	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f,  0.5f),	glm::vec3(0.0f, 0.0f, 1.0f),	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f,  0.5f),	glm::vec3(0.0f, 0.0f, 1.0f),	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3(-0.5f,  0.5f,  0.5f),	glm::vec3(0.0f, 0.0f, 1.0f),	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3(-0.5f, -0.5f,  0.5f),	glm::vec3(0.0f, 0.0f, 1.0f),	glm::vec2(0.0f, 0.0f)),
+
+		make_vertex(glm::vec3(-0.5f,  0.5f,  0.5f),	glm::vec3(-1.0f, 0.0f, 0.0f),	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3(-0.5f,  0.5f, -0.5f),	glm::vec3(-1.0f, 0.0f, 0.0f),	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3(-0.5f, -0.5f, -0.5f),	glm::vec3(-1.0f, 0.0f, 0.0f),	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3(-0.5f, -0.5f, -0.5f),	glm::vec3(-1.0f, 0.0f, 0.0f),	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3(-0.5f, -0.5f,  0.5f),	glm::vec3(-1.0f, 0.0f, 0.0f),	glm::vec2(0.0f, 0.0f)),
+		make_vertex(glm::vec3(-0.5f,  0.5f,  0.5f),	glm::vec3(-1.0f, 0.0f, 0.0f),	glm::vec2(1.0f, 0.0f)),
+
+		make_vertex(glm::vec3( 0.5f,  0.5f,  0.5f),	glm::vec3(1.0f, 0.0f, 0.0f), 	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f, -0.5f),	glm::vec3(1.0f, 0.0f, 0.0f), 	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f, -0.5f),	glm::vec3(1.0f, 0.0f, 0.0f), 	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f, -0.5f),	glm::vec3(1.0f, 0.0f, 0.0f), 	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f,  0.5f),	glm::vec3(1.0f, 0.0f, 0.0f), 	glm::vec2(0.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f,  0.5f),	glm::vec3(1.0f, 0.0f, 0.0f), 	glm::vec2(1.0f, 0.0f)),
+
+		make_vertex(glm::vec3(-0.5f, -0.5f, -0.5f),	glm::vec3(0.0f, -1.0f, 0.0f),	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f, -0.5f),	glm::vec3(0.0f, -1.0f, 0.0f),	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f,  0.5f),	glm::vec3(0.0f, -1.0f, 0.0f),	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f, -0.5f,  0.5f),	glm::vec3(0.0f, -1.0f, 0.0f),	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3(-0.5f, -0.5f,  0.5f),	glm::vec3(0.0f, -1.0f, 0.0f),	glm::vec2(0.0f, 0.0f)),
+		make_vertex(glm::vec3(-0.5f, -0.5f, -0.5f),	glm::vec3(0.0f, -1.0f, 0.0f),	glm::vec2(0.0f, 1.0f)),
+
+		make_vertex(glm::vec3(-0.5f,  0.5f, -0.5f),	glm::vec3(0.0f, 1.0f, 0.0f), 	glm::vec2(0.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f, -0.5f),	glm::vec3(0.0f, 1.0f, 0.0f), 	glm::vec2(1.0f, 1.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f,  0.5f),	glm::vec3(0.0f, 1.0f, 0.0f), 	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3( 0.5f,  0.5f,  0.5f),	glm::vec3(0.0f, 1.0f, 0.0f), 	glm::vec2(1.0f, 0.0f)),
+		make_vertex(glm::vec3(-0.5f,  0.5f,  0.5f),	glm::vec3(0.0f, 1.0f, 0.0f), 	glm::vec2(0.0f, 0.0f)),
+		make_vertex(glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f),	glm::vec2(0.0f, 1.0f))
+	};
+
+	std::vector<uint> indices = {
+		0, 1, 2, 3, 4, 5,
+		6, 7, 8, 9, 10, 11,
+		12, 13, 14, 15, 16, 17,
+		18, 19, 20, 21, 22, 23,
+		24, 25, 26, 27, 28, 29,
+		30, 31, 32, 33, 34, 35
+	};
+
+	std::vector<Texture> textures = {
+		make_texture("diffuse", "resources/container2.png"),
+		make_texture("specular", "resources/container2_specular.png")
+	};
+
+	Mesh mesh = make_mesh(vertices, indices, textures);
+	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
+	glm::mat4 trans = glm::mat4(1.0f);
+
+	// set up direction light
+	glUseProgram(shader);
+	glUniform3f(glGetUniformLocation(shader, "directional_light.direction"), -0.2f, -1.0f, -0.3f);
+	glUniform3f(glGetUniformLocation(shader, "directional_light.ambient"), 0.2f, 0.2f, 0.2f);
+	glUniform3f(glGetUniformLocation(shader, "directional_light.diffuse"), 1.0f, 1.0f, 1.0f);
+	glUniform3f(glGetUniformLocation(shader, "directional_light.specular"), 1.0f, 1.0f, 1.0f);
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -66,9 +132,31 @@ int main(void) {
 		// input
 		processInput(window);
 
+		glUseProgram(shader);
+		glUniformMatrix4fv(
+				glGetUniformLocation(shader, "view"),
+				1,
+				GL_FALSE,
+				glm::value_ptr(get_view(camera, glm::vec3(0, 1, 0))));
+		glUniformMatrix4fv(
+				glGetUniformLocation(shader, "projection"),
+				1,
+				GL_FALSE,
+				glm::value_ptr(get_projection(camera)));
+
+		glUniform3f(
+				glGetUniformLocation(shader, "view_position"),
+				camera.position.x,
+				camera.position.y,
+				camera.position.z);
+
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		draw_model(model, shader, trans);
+		//glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(trans));
+		//draw_mesh(mesh, shader);
 
 		glBindVertexArray(0);
 

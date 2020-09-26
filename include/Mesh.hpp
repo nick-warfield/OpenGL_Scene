@@ -10,12 +10,21 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 struct Vertex {
 	glm::vec3 position;
 	glm::vec3 normal;
 	glm::vec2 texture_coordinate;
 };
+
+Vertex make_vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texture_coordinate) {
+	Vertex v;
+	v.position = position;
+	v.normal = normal;
+	v.texture_coordinate = texture_coordinate;
+	return v;
+}
 
 struct Mesh {
 	unsigned int vertex_buffer_object;
@@ -31,8 +40,9 @@ void draw_mesh(const Mesh& mesh, unsigned int shader) {
 	// activate, bind, and set textures
 	for (int i = 0; i < mesh.texture.size(); ++i) {
 		bind_texture(mesh.texture[i].id, i);
-		glUniform1i(glGetUniformLocation(shader, mesh.texture[i].name.c_str()), i);
+		glUniform1i(glGetUniformLocation(shader, std::string("material." + mesh.texture[i].name).c_str()), i);
 	}
+	glUniform1f(glGetUniformLocation(shader, "material.shininess"), 32.0f);
 
 	// draw mesh
 	glBindVertexArray(mesh.vertex_array_object);
@@ -71,7 +81,7 @@ Mesh make_mesh(
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 	glEnableVertexAttribArray(1);
 	
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coordinate));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coordinate));
 	glEnableVertexAttribArray(2);
 
 	// Unbind Vertex Array Buffer

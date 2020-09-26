@@ -35,8 +35,7 @@ std::vector<Texture> load_material_textures(std::vector<Texture> &loaded_texture
 		bool is_loaded = false;
 
 		for (auto tex : loaded_textures) {
-			std::cout << tex.name << std::endl << str.C_Str() << std::endl << std::endl;
-			if (std::strcmp(tex.name.data(), str.C_Str()) == 0) {
+			if (std::strcmp(tex.path.data(), (dir + "/" + str.C_Str()).c_str()) == 0) {
 				t.push_back(tex);
 				is_loaded = true;
 				break;
@@ -44,7 +43,8 @@ std::vector<Texture> load_material_textures(std::vector<Texture> &loaded_texture
 		}
 
 		if (!is_loaded) {
-			auto texture = make_texture(std::string(str.C_Str()), dir + "/" + name + ".jpg");
+			// this is the source of a lot of pain
+			auto texture = make_texture(name, dir + "/" + str.C_Str());
 			t.push_back(texture);
 			loaded_textures.push_back(texture);
 		}

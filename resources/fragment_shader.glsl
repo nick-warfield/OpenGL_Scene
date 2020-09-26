@@ -48,14 +48,12 @@ in vec2 TexCoord;
 in vec3 FragPosition;
 in vec3 Normal;
 
-uniform sampler2D texture0;
-
 uniform Material material;
 
 #define NUMBER_OF_POINT_LIGHTS 1
-uniform PointLight point_light[NUMBER_OF_POINT_LIGHTS];
+//uniform PointLight point_light[NUMBER_OF_POINT_LIGHTS];
 uniform DirectionalLight directional_light;
-uniform SpotLight spot_light;
+//uniform SpotLight spot_light;
 
 uniform vec3 view_position;
 
@@ -69,11 +67,12 @@ void main() {
 
 	vec3 color;
 	color = calc_directional_light(directional_light, norm, view_dir);
-	for (int i = 0; i < NUMBER_OF_POINT_LIGHTS; ++i) {
-		color += calc_point_light(point_light[i], norm, FragPosition, view_dir);
-	}
-	// spot lights
-	color += calc_spot_light(spot_light, norm, FragPosition, view_dir);
+
+//	for (int i = 0; i < NUMBER_OF_POINT_LIGHTS; ++i) {
+//		color += calc_point_light(point_light[i], norm, FragPosition, view_dir);
+//	}
+//	// spot lights
+//	color += calc_spot_light(spot_light, norm, FragPosition, view_dir);
 
 	FragColor = vec4(color, 1.0);
 }
