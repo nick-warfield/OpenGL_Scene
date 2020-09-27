@@ -113,6 +113,12 @@ Model load_model(std::string model_path) {
 	m.directory = model_path.substr(0, model_path.find_last_of('/'));
 	process_node(m, scene->mRootNode, scene);
 
+	uint count = 0;
+	for (auto mesh : m.mesh) {
+		count += mesh.vertex.size();
+	}
+	std::cout << count << std::endl;
+
 	return m;
 }
 
