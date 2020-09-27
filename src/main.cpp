@@ -114,6 +114,8 @@ int main(void) {
 	Mesh mesh = make_mesh(vertices, indices, textures);
 	uint shader = make_shader("resources/vertex_shader.glsl", "resources/fragment_shader.glsl");
 	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, -2.0f));
+	trans = glm::scale(trans, glm::vec3(1.0f));
 
 	// set up direction light
 	glUseProgram(shader);
