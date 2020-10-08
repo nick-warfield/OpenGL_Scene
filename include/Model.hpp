@@ -35,7 +35,7 @@ void load_material_textures(Model &model, aiMaterial *material, aiTextureType ty
 		bool is_loaded = false;
 
 		for (auto tex : model.loaded_texture) {
-			if (std::strcmp(tex.path.data(), (model.directory + "/" + str.C_Str()).c_str()) == 0) {
+			if (std::strcmp(tex.path.data(), (model.directory + "/" + name + ".jpg").c_str()) == 0) {
 				model.mesh.back().texture.push_back(tex);
 				is_loaded = true;
 				break;
@@ -43,7 +43,7 @@ void load_material_textures(Model &model, aiMaterial *material, aiTextureType ty
 		}
 
 		if (!is_loaded) {
-			auto texture = make_texture(name, model.directory + "/" + str.C_Str());
+			auto texture = make_texture(name, model.directory + "/" + name + ".jpg");
 			model.mesh.back().texture.push_back(texture);
 			model.loaded_texture.push_back(texture);
 		}
@@ -114,10 +114,55 @@ Model load_model(std::string model_path) {
 	process_node(m, scene->mRootNode, scene);
 
 	uint count = 0;
+	for (uint i = 0; i < scene->mNumMeshes; ++i) {
+		for (uint j = 0; j < scene->mMeshes[i]->mNumVertices; ++j) {
+			// check positions
+			if (scene->mMeshes[i]->mVertices[j].x != m.mesh[i].vertex[j].position.x) {
+				std::cout << "Error: position.x not loaded correctly" << std::endl;
+			}
+			if (scene->mMeshes[i]->mVertices[j].y != m.mesh[i].vertex[j].position.y) {
+				std::cout << "Error: position.y not loaded correctly" << std::endl;
+			}
+			if (scene->mMeshes[i]->mVertices[j].z != m.mesh[i].vertex[j].position.z) {
+				std::cout << "Error: position.z not loaded correctly" << std::endl;
+			}
+
+			// check normals
+			if (scene->mMeshes[i]->mNormals[j].x != m.mesh[i].vertex[j].normal.x) {
+				std::cout << "Error: normal.x not loaded correctly" << std::endl;
+			}
+			if (scene->mMeshes[i]->mNormals[j].y != m.mesh[i].vertex[j].normal.y) {
+				std::cout << "Error: normal.y not loaded correctly" << std::endl;
+			}
+			if (scene->mMeshes[i]->mNormals[j].z != m.mesh[i].vertex[j].normal.z) {
+				std::cout << "Error: normal.z not loaded correctly" << std::endl;
+			}
+
+			// check texture coordinates
+			if (scene->mMeshes[i]->mTextureCoords[0][j].x != m.mesh[i].vertex[j].texture_coordinate.x) {
+				std::cout << "Error: texture_coordinate.x not loaded correctly" << std::endl;
+			}
+			if (scene->mMeshes[i]->mTextureCoords[0][j].y != m.mesh[i].vertex[j].texture_coordinate.y) {
+				std::cout << "Error: texture_coordinate.y not loaded correctly" << std::endl;
+			}
+		}
+
+		uint offset = 0;
+		for (uint j = 0; j < scene->mMeshes[i]->mNumFaces; ++j) {
+			auto face = scene->mMeshes[i]->mFaces[j];
+			for (uint k = 0; k < face.mNumIndices; ++k) {
+				if (face.mIndices[k] != m.mesh[i].index[offset]) {
+					std::cout << "Error: index not equal: ";
+					std::cout << scene->mMeshes[i]->mFaces[j].mIndices[k] << " != " << m.mesh[i].index[offset] << std::endl;
+				}
+				offset++;
+			}
+		}
+	}
+
 	for (auto mesh : m.mesh) {
 		count += mesh.vertex.size();
 	}
-	std::cout << count << std::endl;
 
 	return m;
 }
